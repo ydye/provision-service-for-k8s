@@ -2,17 +2,27 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ydye/provision-service-for-k8s/pkg/core"
 	"log"
 	"os"
+	"time"
 	"path"
 	"path/filepath"
 
+	"github.com/ydye/provision-service-for-k8s/config"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"k8s.io/klog"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 var (
-	cfgFile string
+	cfgFile        string
+	kubeConfigFile string
+	period         time.Duration
 
 	RootCmd = &cobra.Command{
 		Use:   "provision",
@@ -35,7 +45,13 @@ provision=failed.
 If all the provision tasks success, a label provision=successful will be added
 into the node.`,
 		Run: func(cmd *cobra.Command, args []string) {
+			provisionOptions := createProvisionOptions()
+			kubeClient := createKubeClient(getKubeConfig())
 
+			opts := core.ProvisionServiceOptions{
+				ProvisionOptions: provisionOptions,
+				KubeClient: kubeClient,
+			}
 		},
 	}
 )
@@ -52,7 +68,8 @@ func init() {
 
 	// Global
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (defailt is ./provision.yaml)")
-
+	RootCmd.PersistentFlags().DurationVar(&period, "period", 60*time.Second, "How often to find the new joined node")
+	RootCmd.PersistentFlags().StringVar(&kubeConfigFile, "kubeConfigFile", "", "The path of kubeConfig file")
 }
 
 func initConfig() {
@@ -79,5 +96,32 @@ func initConfig() {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	} else {
 		fmt.Println(err)
+	}
+}
+
+func getKubeConfig() *rest.Config {
+	if kubeConfigFile != "" {
+		klog.V(1).Infof("Using kubeconfig file: %s", kubeConfigFile)
+		config, err := clientcmd.BuildConfigFromFlags("", kubeConfigFile)
+		if err != nil {
+			klog.Fatal("Failed to build kubeConfig: %v", err)
+		}
+		return config
+	} else {
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			klog.Fatal("Failed to build kubeConfig: %v", err)
+		}
+		return config
+	}
+}
+
+func createKubeClient(kubeConfig *rest.config) kubernetes.Interface {
+	return kubernetes.NewForConfigOrDie(kubeConfig)
+}
+
+func createProvisionOptions() config.ProvisionOptions {
+	return config.ProvisionOptions{
+		KubeConfigPath: kubeConfigFile,
 	}
 }

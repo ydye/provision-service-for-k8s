@@ -6,10 +6,6 @@ import (
 	"k8s.io/klog"
 )
 
-func run() {
-
-}
-
 func main() {
 	klog.InitFlags(nil)
 	klog.V(1).Infof("OpenPAI provision %s", version.OpenPAIProvisionVersion)
