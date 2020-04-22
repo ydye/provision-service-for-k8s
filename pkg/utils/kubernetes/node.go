@@ -30,7 +30,13 @@ func IsNodeProvisionedAndSuccessed(node *apiv1.Node) bool {
 	return true
 }
 
-func IsNodeNeededToProvision
+func IsNodeNeededToProvision(node *apiv1.Node) bool {
+	needToProvision, _ := GetProvisionRequirement(node)
+	if !needToProvision {
+		return false
+	}
+	return true
+}
 
 func GetReadinessState(node *apiv1.Node) (isNodeReady bool, lastTransitionTime time.Time, err error) {
 	canNodeBeReady, readyFound := true, false
@@ -70,12 +76,25 @@ func GetReadinessState(node *apiv1.Node) (isNodeReady bool, lastTransitionTime t
 
 func GetProvisionState(node *apiv1.Node) (isNodeReady bool, err error) {
 	provisioned := false
-
 	if val, ok := node.Labels["provision"]; ok {
 		if val == config.SuccessfulProvision {
 			provisioned = true
 		}
 	}
+	return provisioned, nil
+}
 
+func GetProvisionRequirement(node *apiv1.Node) (isNodeReady bool, err error) {
+	provisioned := false
+	if val, ok := node.Labels["provision"]; ok {
+		// If a node is found with OngingProvision value, that means in the last round.
+		// Provision service crushed.
+		if val == config.OngingProvision {
+			provisioned = true
+		}
+	} else {
+		// A node without the provision label haven't been provisioned before.
+		provisioned = true
+	}
 	return provisioned, nil
 }
