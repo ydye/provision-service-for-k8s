@@ -2,21 +2,22 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ydye/provision-service-for-k8s/pkg/config"
 	"github.com/ydye/provision-service-for-k8s/pkg/core"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog"
+
 	"log"
 	"os"
 	"time"
 	"path"
 	"path/filepath"
 
-	"github.com/ydye/provision-service-for-k8s/config"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"k8s.io/klog"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
+
 )
 
 var (
@@ -45,13 +46,7 @@ provision=failed.
 If all the provision tasks success, a label provision=successful will be added
 into the node.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			provisionOptions := createProvisionOptions()
-			kubeClient := createKubeClient(getKubeConfig())
 
-			opts := core.ProvisionServiceOptions{
-				ProvisionOptions: provisionOptions,
-				KubeClient: kubeClient,
-			}
 		},
 	}
 )
@@ -99,6 +94,16 @@ func initConfig() {
 	}
 }
 
+func BuildProvision () {
+	provisionOptions := createProvisionOptions()
+	kubeClient := createKubeClient(getKubeConfig())
+
+	opts := core.ProvisionServiceOptions{
+		ProvisionOptions: provisionOptions,
+		KubeClient: kubeClient,
+	}
+}
+
 func getKubeConfig() *rest.Config {
 	if kubeConfigFile != "" {
 		klog.V(1).Infof("Using kubeconfig file: %s", kubeConfigFile)
@@ -125,3 +130,4 @@ func createProvisionOptions() config.ProvisionOptions {
 		KubeConfigPath: kubeConfigFile,
 	}
 }
+

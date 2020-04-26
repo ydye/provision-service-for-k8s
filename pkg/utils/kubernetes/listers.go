@@ -15,24 +15,56 @@ import (
 type ListerRegistry interface {
 	AllNodeLister() NodeLister
 	ReadyNodeLister() NodeLister
+	ProvisionedNodeLister() NodeLister
+	UnprovisionedNodeLister() NodeLister
+
 }
 
 type listerRegistryImpl struct {
 	allNodeLister   NodeLister
 	readyNodeLister NodeLister
+	provisionedNodeList NodeLister
+	unprovisionedNodeList NodeLister
 }
 
-
-func NewListerRegistry(allNode NodeLister, readyNode NodeLister) ListerRegistry {
-
+func NewListerRegistry(allNode NodeLister, readyNode NodeLister, provisionedNode NodeLister,
+	unprovisionedNode NodeLister) ListerRegistry {
+	return listerRegistryImpl{
+		allNodeLister:         allNode,
+		readyNodeLister:       readyNode,
+		provisionedNodeList:   provisionedNode,
+		unprovisionedNodeList: unprovisionedNode,
+	}
 }
 
 func NewListerRegistryWithDefaultListers(kubeClient client.Interface, stopChannel <-chan struct{}) ListerRegistry {
 	allNodeLister := NewAllNodeLister(kubeClient, stopChannel)
 	readyNodeLister := NewReadyNodeLister(kubeClient, stopChannel)
-	return NewListerRegistry(allNodeLister, readyNodeLister)
+	provisionedNodeList := NewProvisionedNodeLister(kubeClient, stopChannel)
+	unprovisionedNodeList := NewUnprovisionedNodeLister(kubeClient, stopChannel)
+	return NewListerRegistry(allNodeLister, readyNodeLister, provisionedNodeList,
+		unprovisionedNodeList)
 }
 
+// AllNodeLister returns the AllNodeLister registered to this registry
+func (r listerRegistryImpl) AllNodeLister() NodeLister {
+	return r.allNodeLister
+}
+
+// ReadyNodeLister returns the ReadyNodeLister registered to this registry
+func (r listerRegistryImpl) ReadyNodeLister() NodeLister {
+	return r.readyNodeLister
+}
+
+// ProvisionedNodeLister returns the provisionedNodeList registered to this registry
+func (r listerRegistryImpl) ProvisionedNodeLister() NodeLister {
+	return r.provisionedNodeList
+}
+
+// ProvisionedNodeLister returns the provisionedNodeList registered to this registry
+func (r listerRegistryImpl) UnprovisionedNodeLister() NodeLister {
+	return r.unprovisionedNodeList
+}
 
 // NodeLister lists nodes.
 type NodeLister interface {
@@ -99,3 +131,17 @@ func filterNodes(nodes []*apiv1.Node, predicate func(*apiv1.Node) bool) []*apiv1
 func NewAllNodeLister(kubeClient client.Interface, stopChannel <-chan struct{}) NodeLister {
 	return NewNodeLister(kubeClient, nil, stopChannel)
 }
+
+func NewReadyNodeLister(kubeClient client.Interface, stopChannel <-chan struct{}) NodeLister {
+	return NewNodeLister(kubeClient, IsNodeReadyAndSchedulable, stopChannel)
+}
+
+func NewProvisionedNodeLister(kubeClient client.Interface, stopChannel <-chan struct{}) NodeLister {
+	return NewNodeLister(kubeClient, IsNodeProvisionedAndSuccessed, stopChannel)
+}
+
+func NewUnprovisionedNodeLister(kubeClient client.Interface, stopChannel <-chan struct{}) NodeLister {
+	return NewNodeLister(kubeClient, IsNodeNeededToProvision, stopChannel)
+}
+
+
