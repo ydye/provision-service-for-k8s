@@ -5,9 +5,9 @@ import (
 	"time"
 
 	apiv1 "k8s.io/api/core/v1"
-	v1lister "k8s.io/client-go/listers/core/v1"
-	client "k8s.io/client-go/kubernetes"
 	"k8s.io/apimachinery/pkg/fields"
+	client "k8s.io/client-go/kubernetes"
+	v1lister "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
 

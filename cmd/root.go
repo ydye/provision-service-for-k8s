@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ydye/provision-service-for-k8s/pkg/config"
 	"github.com/ydye/provision-service-for-k8s/pkg/core"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -11,18 +12,18 @@ import (
 
 	"log"
 	"os"
-	"time"
 	"path"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
 )
 
 var (
 	cfgFile        string
 	kubeConfigFile string
+	ignoredLable   map[string]string
 	period         time.Duration
 
 	RootCmd = &cobra.Command{
@@ -46,7 +47,20 @@ provision=failed.
 If all the provision tasks success, a label provision=successful will be added
 into the node.`,
 		Run: func(cmd *cobra.Command, args []string) {
-
+			provisionOptions := createProvisionOptions()
+			kubeClient := createKubeClient(getKubeConfig())
+			interrupt := make(chan struct{})
+			opts := core.ProvisionServiceOptions{
+				ProvisionOptions: provisionOptions,
+				KubeClient: kubeClient,
+			}
+			provision := core.NewDefaultProvison(opts, interrupt)
+			go wait.Until( func() {
+				if err := provision.RunOnce(time.Now()); err != nil {
+					klog.Fatalf("Error occurs when provisioning. %v", err)
+					provision.ExitCleanUp()
+				}
+			}, period, interrupt)
 		},
 	}
 )
@@ -65,6 +79,7 @@ func init() {
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (defailt is ./provision.yaml)")
 	RootCmd.PersistentFlags().DurationVar(&period, "period", 60*time.Second, "How often to find the new joined node")
 	RootCmd.PersistentFlags().StringVar(&kubeConfigFile, "kubeConfigFile", "", "The path of kubeConfig file")
+	RootCmd.PersistentFlags().StringToStringVarP(&ignoredLable, "ignoredLabel", "i",nil,"Ignore the node with the label and value")
 }
 
 func initConfig() {
@@ -94,30 +109,20 @@ func initConfig() {
 	}
 }
 
-func BuildProvision () {
-	provisionOptions := createProvisionOptions()
-	kubeClient := createKubeClient(getKubeConfig())
-
-	opts := core.ProvisionServiceOptions{
-		ProvisionOptions: provisionOptions,
-		KubeClient: kubeClient,
-	}
-}
-
 func getKubeConfig() *rest.Config {
 	if kubeConfigFile != "" {
 		klog.V(1).Infof("Using kubeconfig file: %s", kubeConfigFile)
-		config, err := clientcmd.BuildConfigFromFlags("", kubeConfigFile)
+		kubeconfig, err := clientcmd.BuildConfigFromFlags("", kubeConfigFile)
 		if err != nil {
 			klog.Fatal("Failed to build kubeConfig: %v", err)
 		}
-		return config
+		return kubeconfig
 	} else {
-		config, err := rest.InClusterConfig()
+		kubeconfig, err := rest.InClusterConfig()
 		if err != nil {
 			klog.Fatal("Failed to build kubeConfig: %v", err)
 		}
-		return config
+		return kubeconfig
 	}
 }
 
@@ -128,6 +133,8 @@ func createKubeClient(kubeConfig *rest.config) kubernetes.Interface {
 func createProvisionOptions() config.ProvisionOptions {
 	return config.ProvisionOptions{
 		KubeConfigPath: kubeConfigFile,
+		Period:         period,
+		IgnoredLable:   ignoredLable,
 	}
 }
 

@@ -1,9 +1,9 @@
 package core
 
 import (
-	kube_util "github.com/ydye/provision-service-for-k8s/pkg/utils/kubernetes"
 	"github.com/ydye/provision-service-for-k8s/pkg/config"
 	"github.com/ydye/provision-service-for-k8s/pkg/utils/errors"
+	kube_util "github.com/ydye/provision-service-for-k8s/pkg/utils/kubernetes"
 	"k8s.io/client-go/kubernetes"
 	"time"
 )
@@ -16,19 +16,17 @@ type ProvisionServiceOptions struct {
 }
 
 type Provision interface {
-	start() error
-
 	RunOnce(currentTime time.Time) errors.ProvisionError
 
 	ExitCleanUp()
 }
 
-func NewProvision(opts ProvisionServiceOptions) (Provision, errors.ProvisionError) {
+func NewProvision(opts ProvisionServiceOptions, interrupt chan struct{}) (Provision, errors.ProvisionError) {
 	err := initializeDefaultOptions(&opts)
 	if err != nil {
 		return nil, errors.ToProvisionError(errors.InternalError, err)
 	}
-	return
+	return NewDefaultProvison(opts, interrupt), nil
 }
 
 func initializeDefaultOptions(opts *ProvisionServiceOptions) error {

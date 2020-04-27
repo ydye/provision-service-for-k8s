@@ -31,6 +31,7 @@ type provisionErrorImpl struct {
 const (
 	InternalError ProvisionErrorType = "internalError"
 	ConfigurationError ProvisionErrorType = "configurationError"
+	ApiCallError ProvisionErrorType = "apiCallError"
 )
 
 func NewProvisionError(errorType ProvisionErrorType, msg string, args ...interface{}) ProvisionError {
