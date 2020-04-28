@@ -30,7 +30,7 @@ func (a *defaultProvision) ExitCleanUp() {
 func (a *defaultProvision) RunOnce(currentTime time.Time) errors.ProvisionError {
 	targetNodeList, fdNodeErr := a.findNodeToProvision()
 	if fdNodeErr != nil {
-		klog.Errof("Failed to get node to provisions: %v", fdNodeErr)
+		klog.Errorf("Failed to get node to provisions: %v", fdNodeErr)
 		return fdNodeErr
 	}
 	if len(targetNodeList) == 0 {
