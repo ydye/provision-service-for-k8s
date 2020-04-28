@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/golang/protobuf v1.4.0 // indirect
-	github.com/googleapis/gnostic v0.3.1 // indirect
+	github.com/googleapis/gnostic v0.4.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/mitchellh/mapstructure v1.2.3 // indirect
@@ -23,7 +23,7 @@ require (
 	gopkg.in/ini.v1 v1.55.0 // indirect
 	k8s.io/api v0.18.2
 	k8s.io/apimachinery v0.18.2
-	k8s.io/client-go v0.17.0
+	k8s.io/client-go v0.0.0-20191114101535-6c5935290e33
 	k8s.io/klog v1.0.0
 	k8s.io/utils v0.0.0-20200414100711-2df71ebbae66 // indirect
 )
