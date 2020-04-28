@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ydye/provision-service-for-k8s/config"
+	provision_config "github.com/ydye/provision-service-for-k8s/pkg/config"
 	apiv1 "k8s.io/api/core/v1"
 )
 
@@ -77,7 +77,7 @@ func GetReadinessState(node *apiv1.Node) (isNodeReady bool, lastTransitionTime t
 func GetProvisionState(node *apiv1.Node) (isNodeReady bool, err error) {
 	provisioned := false
 	if val, ok := node.Labels["provision"]; ok {
-		if val == config.SuccessfulProvision {
+		if val == provision_config.SuccessfulProvision {
 			provisioned = true
 		}
 	}
@@ -89,7 +89,7 @@ func GetProvisionRequirement(node *apiv1.Node) (isNodeReady bool, err error) {
 	if val, ok := node.Labels["provision"]; ok {
 		// If a node is found with OngingProvision value, that means in the last round.
 		// Provision service crushed.
-		if val == config.OngingProvision {
+		if val == provision_config.OngingProvision {
 			provisioned = true
 		}
 	} else {
