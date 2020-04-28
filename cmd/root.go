@@ -54,10 +54,10 @@ into the node.`,
 			interrupt := make(chan struct{})
 			opts := core.ProvisionServiceOptions{
 				ProvisionOptions: provisionOptions,
-				KubeClient: kubeClient,
+				KubeClient:       kubeClient,
 			}
 			provision := core.NewDefaultProvison(opts, interrupt)
-			go wait.Until( func() {
+			go wait.Until(func() {
 				if err := provision.RunOnce(time.Now()); err != nil {
 					klog.Fatalf("Error occurs when provisioning. %v", err)
 					provision.ExitCleanUp()
@@ -81,8 +81,8 @@ func init() {
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (defailt is ./provision.yaml)")
 	RootCmd.PersistentFlags().DurationVar(&period, "period", 60*time.Second, "How often to find the new joined node")
 	RootCmd.PersistentFlags().StringVar(&kubeConfigFile, "kube-config-file", "", "The path of kubeConfig file")
-	RootCmd.PersistentFlags().StringToStringVarP(&ignoredLable, "ignored-label", "i",nil,"Ignore the node with the label and value")
-	RootCmd.PersistentFlags().IntVar(&provisonNodeBulk, "provision-node-bulk",1,"Max nodes numbers to provision in one round")
+	RootCmd.PersistentFlags().StringToStringVarP(&ignoredLable, "ignored-label", "i", nil, "Ignore the node with the label and value")
+	RootCmd.PersistentFlags().IntVar(&provisonNodeBulk, "provision-node-bulk", 1, "Max nodes numbers to provision in one round")
 	RootCmd.PersistentFlags().StringVar(&ansiblePlaybooksPath, "ansible-playbooks-path", "~/provision-openpai/playbooks",
 		"The Path to store ansible-playbooks which is used when provison a node.")
 }
@@ -131,7 +131,7 @@ func getKubeConfig() *rest.Config {
 	}
 }
 
-func createKubeClient(kubeConfig *rest.config) kubernetes.Interface {
+func createKubeClient(kubeConfig *rest.Config) kubernetes.Interface {
 	return kubernetes.NewForConfigOrDie(kubeConfig)
 }
 
@@ -144,4 +144,3 @@ func createProvisionOptions() config.ProvisionOptions {
 		ProvisionNodeBulk:    provisonNodeBulk,
 	}
 }
-
