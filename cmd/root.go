@@ -21,10 +21,12 @@ import (
 )
 
 var (
-	cfgFile        string
-	kubeConfigFile string
-	ignoredLable   map[string]string
-	period         time.Duration
+	cfgFile              string
+	kubeConfigFile       string
+	ansiblePlaybooksPath string
+	ignoredLable         map[string]string
+	period               time.Duration
+	provisonNodeBulk     int
 
 	RootCmd = &cobra.Command{
 		Use:   "provision",
@@ -78,8 +80,11 @@ func init() {
 	// Global
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (defailt is ./provision.yaml)")
 	RootCmd.PersistentFlags().DurationVar(&period, "period", 60*time.Second, "How often to find the new joined node")
-	RootCmd.PersistentFlags().StringVar(&kubeConfigFile, "kubeConfigFile", "", "The path of kubeConfig file")
-	RootCmd.PersistentFlags().StringToStringVarP(&ignoredLable, "ignoredLabel", "i",nil,"Ignore the node with the label and value")
+	RootCmd.PersistentFlags().StringVar(&kubeConfigFile, "kube-config-file", "", "The path of kubeConfig file")
+	RootCmd.PersistentFlags().StringToStringVarP(&ignoredLable, "ignored-label", "i",nil,"Ignore the node with the label and value")
+	RootCmd.PersistentFlags().IntVar(&provisonNodeBulk, "provision-node-bulk",1,"Max nodes numbers to provision in one round")
+	RootCmd.PersistentFlags().StringVar(&ansiblePlaybooksPath, "ansible-playbooks-path", "~/provision-openpai/playbooks",
+		"The Path to store ansible-playbooks which is used when provison a node.")
 }
 
 func initConfig() {
@@ -132,9 +137,11 @@ func createKubeClient(kubeConfig *rest.config) kubernetes.Interface {
 
 func createProvisionOptions() config.ProvisionOptions {
 	return config.ProvisionOptions{
-		KubeConfigPath: kubeConfigFile,
-		Period:         period,
-		IgnoredLable:   ignoredLable,
+		KubeConfigPath:       kubeConfigFile,
+		AnsiblePlaybooksPath: ansiblePlaybooksPath,
+		Period:               period,
+		IgnoredLable:         ignoredLable,
+		ProvisionNodeBulk:    provisonNodeBulk,
 	}
 }
 

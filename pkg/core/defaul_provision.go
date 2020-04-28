@@ -28,9 +28,20 @@ func (a *defaultProvision) ExitCleanUp() {
 }
 
 func (a *defaultProvision) RunOnce(currentTime time.Time) errors.ProvisionError {
+	targetNodeList, fdNodeErr := a.findNodeToProvision()
+	if fdNodeErr != nil {
+		klog.Errof("Failed to get node to provisions: %v", fdNodeErr)
+		return fdNodeErr
+	}
+	if len(targetNodeList) == 0 {
+		klog.Info("There is no node needed to be provision")
+		return nil
+	}
 
-
-
+	for _, v := range targetNodeList {
+		klog.Infof("Node: ", v)
+	}
+	return nil
 }
 
 func (a *defaultProvision) findNodeToProvision() ([]*apiv1.Node, errors.ProvisionError) {
