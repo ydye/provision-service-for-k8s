@@ -10,7 +10,7 @@ RUN apt-get -y install libseccomp-dev
 RUN go version
 RUN mkdir -p ${PROJECT_DIR} ${INSTALL_DIR}
 
-COPY ./* ${PROJECT_DIR}
+COPY ./ ${PROJECT_DIR}
 
 RUN cd ${PROJECT_DIR} && GOOS=linux go build -o ${INSTALL_DIR}/provision main.go
 RUN chmod a+x ${INSTALL_DIR}/provison
