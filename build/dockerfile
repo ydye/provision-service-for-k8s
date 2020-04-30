@@ -13,6 +13,7 @@ RUN mkdir -p ${PROJECT_DIR} ${INSTALL_DIR}
 COPY ./ ${PROJECT_DIR}
 
 RUN cd ${PROJECT_DIR} && GOOS=linux go build -o ${INSTALL_DIR}/provision main.go
+RUN ls ${PROJECT_DIR}
 RUN chmod a+x ${INSTALL_DIR}/provison
 
 FROM alpine:3.10.1
