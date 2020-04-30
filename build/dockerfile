@@ -1,0 +1,24 @@
+FROM golang:1.14.2 as builder
+
+ENV PROJECT_DIR /src/openpai-provision
+ENV INSTALL_DIR /opt/openpai-provision
+ENV GOPATH /gopath/
+ENV PATH $GOPATH/bin:$PATH
+
+RUN apt-get update
+RUN apt-get -y install libseccomp-dev
+RUN go version
+RUN mkdir -p ${PROJECT_DIR} ${INSTALL_DIR}
+
+COPY ./* ${PROJECT_DIR}
+
+RUN cd ${PROJECT_DIR} && GOOS=linux go build -o ${INSTALL_DIR}/provision main.go
+RUN chmod a+x ${INSTALL_DIR}/provison
+
+FROM alpine:3.10.1
+
+ENV INSTALL_DIR /opt/openpai-provision
+
+RUN apk update && apk add --no-cahce bash && mkdir -p provision
+COPY --from=builder ${INSTALL_DIR}/provision ${INSTALL_DIR}/provision
+WORKDIR ${INSTALL_DIR}
