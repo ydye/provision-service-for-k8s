@@ -21,6 +21,6 @@ FROM alpine:3.10.1
 
 ENV INSTALL_DIR /opt/openpai-provision
 
-RUN apk update && apk add --no-cahce bash && mkdir -p provision
+RUN apk update && apk add --no-cahce bash && mkdir -p {INSTALL_DIR}
 COPY --from=builder ${INSTALL_DIR}/provision ${INSTALL_DIR}/provision
 WORKDIR ${INSTALL_DIR}
