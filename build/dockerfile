@@ -21,6 +21,6 @@ FROM ubuntu:16.04
 
 ENV INSTALL_DIR /opt/openpai-provision
 
-RUN apt update && mkdir -p {INSTALL_DIR} && ls ${INSTALL_DIR}
+RUN apt update && mkdir -p ${INSTALL_DIR} && ls ${INSTALL_DIR}
 COPY --from=builder ${INSTALL_DIR}/provision ${INSTALL_DIR}/provision
 WORKDIR ${INSTALL_DIR}
