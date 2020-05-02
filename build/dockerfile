@@ -17,10 +17,10 @@ RUN ls ${PROJECT_DIR}
 RUN ls ${INSTALL_DIR}
 RUN chmod a+x ${INSTALL_DIR}/provision
 
-FROM alpine:3.10.1
+FROM alpine:3.11.6
 
 ENV INSTALL_DIR /opt/openpai-provision
 
-RUN apk update && apk add --no-cahce bash && mkdir -p {INSTALL_DIR}
+RUN apk update && apk add --no-cahce mkdir -p {INSTALL_DIR}
 COPY --from=builder ${INSTALL_DIR}/provision ${INSTALL_DIR}/provision
 WORKDIR ${INSTALL_DIR}
